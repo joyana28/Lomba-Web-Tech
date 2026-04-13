@@ -2,10 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Controllers
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\LoginController;
-use App\Http\Controllers\RegisterController;
+// 🔐 AUTH CONTROLLERS
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+
+// MAIN CONTROLLERS
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DonorProfileController;
 use App\Http\Controllers\DonorRequestController;
@@ -14,49 +16,72 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DonationHistoryController;
 use App\Http\Controllers\ReportController;
 
-
+// 🏠 LANDING PAGE
 Route::get('/', function () {
     return view('welcome');
+})->name('home');
+
+// 🔁 OPTIONAL REDIRECT
+Route::get('/home', function () {
+    return redirect()->route('dashboard');
 });
 
 
-// 🔐 AUTH
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+// 🔐 AUTH (HANYA UNTUK GUEST)
+Route::middleware('guest')->group(function () {
 
-Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
+    // LOGIN
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
 
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    // REGISTER
+    Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
+
+    // 🔑 FORGOT PASSWORD
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+
+    Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+});
 
 
 // 🔒 PROTECTED ROUTES (LOGIN REQUIRED)
-Route::middleware(['auth'])->group(function () {
+Route::middleware('auth')->group(function () {
+
+    // LOGOUT
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // 🏠 DASHBOARD
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // 👤 PROFIL DONOR
-    Route::get('/donor/profile', [DonorProfileController::class, 'index'])->name('donor.profile');
-    Route::post('/donor/profile/update', [DonorProfileController::class, 'update'])->name('donor.profile.update');
+    Route::prefix('donor')->group(function () {
+        Route::get('/profile', [DonorProfileController::class, 'index'])->name('donor.profile');
+        Route::post('/profile/update', [DonorProfileController::class, 'update'])->name('donor.profile.update');
+    });
 
     // 🩸 DONOR REQUEST
-    Route::get('/requests', [DonorRequestController::class, 'index'])->name('requests.index');
-    Route::get('/requests/create', [DonorRequestController::class, 'create'])->name('requests.create');
-    Route::post('/requests/store', [DonorRequestController::class, 'store'])->name('requests.store');
-    Route::get('/requests/{id}', [DonorRequestController::class, 'show'])->name('requests.show');
+    Route::prefix('requests')->group(function () {
+        Route::get('/', [DonorRequestController::class, 'index'])->name('requests.index');
+        Route::get('/create', [DonorRequestController::class, 'create'])->name('requests.create');
+        Route::post('/', [DonorRequestController::class, 'store'])->name('requests.store');
+        Route::get('/{request}', [DonorRequestController::class, 'show'])->name('requests.show');
+    });
 
     // 🧠 MATCHING
-    Route::get('/matching/{requestId}', [MatchingController::class, 'match'])->name('matching.run');
+    Route::get('/matching/{request}', [MatchingController::class, 'match'])->name('matching.run');
 
     // 🔔 NOTIFICATIONS
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/read/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    });
 
     // 📜 HISTORY
     Route::get('/history', [DonationHistoryController::class, 'index'])->name('history.index');
 
     // 📊 REPORT
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-
 });
