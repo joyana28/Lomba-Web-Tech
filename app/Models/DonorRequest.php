@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class DonorRequest extends Model
 {
@@ -17,6 +17,10 @@ class DonorRequest extends Model
         'urgency',
         'deadline',
         'status'
+    ];
+
+    protected $casts = [
+        'deadline' => 'datetime',
     ];
 
     public function admin()

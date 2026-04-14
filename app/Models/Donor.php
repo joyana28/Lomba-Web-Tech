@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Donor extends Model
 {
@@ -16,6 +16,11 @@ class Donor extends Model
         'phone',
         'last_donation_date',
         'is_available'
+    ];
+
+    protected $casts = [
+        'last_donation_date' => 'date',
+        'is_available' => 'boolean',
     ];
 
     public function user()
