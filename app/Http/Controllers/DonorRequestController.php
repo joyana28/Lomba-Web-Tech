@@ -14,27 +14,23 @@ class DonorRequestController extends Controller
     public function index()
     {
         $requests = DonorRequest::query()
-            ->with(['bloodType', 'location', 'admin'])
+            ->with(['bloodType', 'location', 'user'])
             ->withCount('matchingResults')
             ->latest()
             ->paginate(10);
 
-        return view('request.index', compact('requests'));
+        return view('requests.index', compact('requests'));
     }
 
     public function create()
     {
-        $this->ensureAdmin();
-
         $bloodTypes = BloodType::orderBy('type')->orderBy('rhesus')->get();
 
-        return view('request.create', compact('bloodTypes'));
+        return view('requests.create', compact('bloodTypes'));
     }
 
     public function store(Request $request, MatchingService $matchingService)
     {
-        $this->ensureAdmin();
-
         $validated = $request->validate([
             'blood_type_id' => ['required', 'exists:blood_types,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
@@ -64,14 +60,14 @@ class DonorRequestController extends Controller
         $results = $matchingService->run($donorRequest);
 
         return redirect()
-            ->route('requests.show', $donorRequest)
-            ->with('success', 'Request donor berhasil dibuat. ' . $results->count() . ' kandidat berhasil diproses.');
+            ->route('requests.show', $donorRequest->id)
+            ->with('success', 'Request berhasil dibuat. ' . $results->count() . ' kandidat ditemukan.');
     }
 
     public function show(DonorRequest $request)
     {
         $request->load([
-            'admin',
+            'user',
             'bloodType',
             'location',
             'matchingResults' => fn ($query) => $query
@@ -85,17 +81,16 @@ class DonorRequestController extends Controller
         ]);
 
         $eligibleCount = $request->matchingResults->where('is_eligible', true)->count();
-        $notificationCount = $request->matchingResults->where('is_eligible', true)->take(max($request->quantity * 3, 5))->count();
 
-        return view('request.show', [
+        $notificationCount = $request->matchingResults
+            ->where('is_eligible', true)
+            ->take(max($request->quantity * 3, 5))
+            ->count();
+
+        return view('requests.show', [
             'donorRequest' => $request,
             'eligibleCount' => $eligibleCount,
             'notificationCount' => $notificationCount,
         ]);
-    }
-
-    private function ensureAdmin(): void
-    {
-        abort_unless(Auth::user()?->role === 'admin', 403, 'Hanya admin yang dapat membuat request donor.');
     }
 }

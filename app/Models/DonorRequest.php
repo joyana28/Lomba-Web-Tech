@@ -23,7 +23,7 @@ class DonorRequest extends Model
         'deadline' => 'datetime',
     ];
 
-    public function admin()
+    public function user()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
