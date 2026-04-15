@@ -9,7 +9,7 @@ class BloodTypeSeeder extends Seeder
 {
     public function run(): void
     {
-        $types = [
+        $bloodTypes = [
             ['type' => 'A', 'rhesus' => '+'],
             ['type' => 'A', 'rhesus' => '-'],
             ['type' => 'B', 'rhesus' => '+'],
@@ -20,8 +20,14 @@ class BloodTypeSeeder extends Seeder
             ['type' => 'O', 'rhesus' => '-'],
         ];
 
-        foreach ($types as $type) {
-            BloodType::firstOrCreate($type, $type);
+        foreach ($bloodTypes as $bloodType) {
+            BloodType::updateOrCreate(
+                [
+                    'type' => $bloodType['type'],
+                    'rhesus' => $bloodType['rhesus'],
+                ],
+                $bloodType
+            );
         }
     }
 }

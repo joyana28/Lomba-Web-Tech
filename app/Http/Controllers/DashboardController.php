@@ -11,20 +11,38 @@ class DashboardController extends Controller
     public function index()
     {
         $totalDonors = Donor::count();
-        $eligibleDonors = Donor::where('is_available', true)->count();
-        $activeRequests = DonorRequest::whereIn('status', ['open', 'in_progress'])->count();
-        $sentNotifications = Notification::count();
 
-        $latestRequests = DonorRequest::with(['bloodType', 'location', 'admin'])
+        $availableDonors = Donor::query()
+            ->where('is_available', 1)
+            ->count();
+
+        $unavailableDonors = Donor::query()
+            ->where('is_available', 0)
+            ->count();
+
+        $activeRequests = DonorRequest::query()
+            ->where('status', 'open')
+            ->count();
+
+        $closedRequests = DonorRequest::query()
+            ->where('status', 'closed')
+            ->count();
+
+        $totalNotifications = Notification::count();
+
+        $latestRequests = DonorRequest::query()
+            ->with(['bloodType', 'location', 'user'])
             ->latest()
-            ->take(5)
+            ->take(10)
             ->get();
 
-        return view('dashboard.index', compact(
+        return view('admin.dashboard', compact(
             'totalDonors',
-            'eligibleDonors',
+            'availableDonors',
+            'unavailableDonors',
             'activeRequests',
-            'sentNotifications',
+            'closedRequests',
+            'totalNotifications',
             'latestRequests'
         ));
     }

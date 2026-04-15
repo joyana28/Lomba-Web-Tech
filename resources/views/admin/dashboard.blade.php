@@ -1,12 +1,12 @@
-@extends('layouts.app', ['title' => 'Laporan Admin - DonorHub'])
+@extends('layouts.app', ['title' => 'Dashboard Admin - DonorHub'])
 
 @section('content')
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-slate-900">Laporan Admin</h1>
-        <p class="mt-2 text-slate-500">Ringkasan statistik donor, request, dan aktivitas sistem.</p>
+        <h1 class="text-3xl font-bold text-slate-900">Dashboard Admin</h1>
+        <p class="mt-2 text-slate-500">Pantau donor, request aktif, dan kondisi sistem DonorHub secara ringkas.</p>
     </div>
 
-    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+    <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
             <p class="text-sm text-slate-500">Total Donor</p>
             <h3 class="mt-2 text-3xl font-bold text-red-600">{{ $totalDonors }}</h3>
@@ -18,18 +18,8 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <p class="text-sm text-slate-500">Total Request</p>
-            <h3 class="mt-2 text-3xl font-bold text-blue-600">{{ $totalRequests }}</h3>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
             <p class="text-sm text-slate-500">Request Aktif</p>
-            <h3 class="mt-2 text-3xl font-bold text-yellow-600">{{ $activeRequests }}</h3>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <p class="text-sm text-slate-500">Request Selesai</p>
-            <h3 class="mt-2 text-3xl font-bold text-slate-700">{{ $completedRequests }}</h3>
+            <h3 class="mt-2 text-3xl font-bold text-blue-600">{{ $activeRequests }}</h3>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
@@ -38,10 +28,33 @@
         </div>
     </div>
 
+    <div class="grid xl:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-xl font-bold text-slate-800 mb-4">Status Request</h3>
+            <div class="h-80">
+                <canvas id="requestStatusChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-xl font-bold text-slate-800 mb-4">Ketersediaan Donor</h3>
+            <div class="h-80">
+                <canvas id="donorAvailabilityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-slate-200">
-            <h3 class="text-xl font-bold text-slate-800">Request Terbaru</h3>
-            <p class="text-sm text-slate-500 mt-1">Daftar request donor terbaru dalam sistem.</p>
+        <div class="p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+                <h3 class="text-xl font-bold text-slate-800">Request Terbaru</h3>
+                <p class="text-sm text-slate-500 mt-1">Daftar kebutuhan donor terbaru yang masuk ke sistem.</p>
+            </div>
+
+            <a href="{{ route('requests.create') }}"
+               class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
+                + Buat Request
+            </a>
         </div>
 
         @if($latestRequests->isEmpty())
@@ -96,3 +109,37 @@
         @endif
     </div>
 @endsection
+
+@push('head')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@endpush
+
+@push('scripts')
+<script>
+    new Chart(document.getElementById('requestStatusChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Open', 'Closed'],
+            datasets: [{
+                label: 'Jumlah Request',
+                data: [{{ $activeRequests }}, {{ $closedRequests }}],
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    new Chart(document.getElementById('donorAvailabilityChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Tersedia', 'Tidak Tersedia'],
+            datasets: [{
+                label: 'Donor',
+                data: [{{ $availableDonors }}, {{ $unavailableDonors }}],
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+</script>
+@endpush

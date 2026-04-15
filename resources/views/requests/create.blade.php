@@ -1,113 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Buat Request Donor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
+@extends('layouts.app', ['title' => 'Buat Request Donor - DonorHub'])
 
-<nav class="bg-white shadow px-6 py-4 flex justify-between items-center">
-    <h1 class="font-bold text-red-600 text-lg">🩸 DonorHub</h1>
-
-    <a href="{{ route('requests.index') }}" class="text-gray-600 hover:text-red-500">
-        ← Kembali
-    </a>
-</nav>
-
-<div class="max-w-2xl mx-auto p-6">
-
-    <div class="bg-white p-6 rounded-2xl shadow">
-
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Buat Request Donor</h2>
-
-        {{-- ERROR --}}
-        @if ($errors->any())
-            <div class="mb-4 bg-red-100 text-red-700 p-3 rounded">
-                @foreach ($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('requests.store') }}" class="space-y-5">
-            @csrf
-
-            <!-- BLOOD TYPE -->
-            <div>
-                <label class="font-medium text-gray-700">Golongan Darah</label>
-                <p class="text-sm text-gray-500">Pilih jenis golongan darah yang dibutuhkan.</p>
-                <select name="blood_type_id" class="w-full border p-2 rounded mt-1">
-                    @foreach($bloodTypes as $blood)
-                        <option value="{{ $blood->id }}">
-                            {{ $blood->type }}{{ $blood->rhesus }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- QUANTITY -->
-            <div>
-                <label class="font-medium text-gray-700">Jumlah Kantong Darah</label>
-                <p class="text-sm text-gray-500">Masukkan jumlah kantong darah yang dibutuhkan (1–20).</p>
-                <input type="number" name="quantity" value="{{ old('quantity') }}"
-                       class="w-full border p-2 rounded mt-1" min="1" max="20">
-            </div>
-
-            <!-- URGENCY -->
-            <div>
-                <label class="font-medium text-gray-700">Tingkat Urgensi</label>
-                <p class="text-sm text-gray-500">Tentukan tingkat kebutuhan donor.</p>
-                <select name="urgency" class="w-full border p-2 rounded mt-1">
-                    <option value="low">Rendah</option>
-                    <option value="medium">Sedang</option>
-                    <option value="high">Tinggi</option>
-                </select>
-            </div>
-
-            <!-- DEADLINE -->
-            <div>
-                <label class="font-medium text-gray-700">Batas Waktu</label>
-                <p class="text-sm text-gray-500">Tentukan batas waktu kebutuhan donor.</p>
-                <input type="datetime-local" name="deadline" value="{{ old('deadline') }}"
-                       class="w-full border p-2 rounded mt-1">
-            </div>
-
-            <!-- ADDRESS -->
-            <div>
-                <label class="font-medium text-gray-700">Alamat Lokasi</label>
-                <p class="text-sm text-gray-500">Masukkan lokasi lengkap tempat donor dibutuhkan.</p>
-                <input type="text" name="address" value="{{ old('address') }}"
-                       class="w-full border p-2 rounded mt-1">
-            </div>
-
-            <!-- LATITUDE -->
-            <div>
-                <label class="font-medium text-gray-700">Latitude</label>
-                <p class="text-sm text-gray-500">Koordinat lokasi (contoh: 2.33).</p>
-                <input type="number" step="any" name="latitude" value="{{ old('latitude') }}"
-                       class="w-full border p-2 rounded mt-1">
-            </div>
-
-            <!-- LONGITUDE -->
-            <div>
-                <label class="font-medium text-gray-700">Longitude</label>
-                <p class="text-sm text-gray-500">Koordinat lokasi (contoh: 99.12).</p>
-                <input type="number" step="any" name="longitude" value="{{ old('longitude') }}"
-                       class="w-full border p-2 rounded mt-1">
-            </div>
-
-            <!-- BUTTON -->
-            <button type="submit"
-                    class="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition">
-                Simpan Request Donor
-            </button>
-
-        </form>
-
+@section('content')
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-900">Buat Request Donor</h1>
+        <p class="mt-2 text-slate-500">Masukkan kebutuhan donor untuk menjalankan smart matching.</p>
     </div>
 
-</div>
+    <div class="grid lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <form method="POST" action="{{ route('requests.store') }}" class="space-y-5">
+                @csrf
 
-</body>
-</html>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Golongan Darah</label>
+                    <select name="blood_type_id" class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                        <option value="">-- Pilih Golongan Darah --</option>
+                        @foreach($bloodTypes as $bloodType)
+                            <option value="{{ $bloodType->id }}" @selected(old('blood_type_id') == $bloodType->id)>
+                                {{ $bloodType->type }}{{ $bloodType->rhesus }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Jumlah Kantong</label>
+                        <input type="number" name="quantity" min="1" max="20" value="{{ old('quantity') }}"
+                               class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                               placeholder="Contoh: 2">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Urgensi</label>
+                        <select name="urgency" class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="">-- Pilih Urgensi --</option>
+                            <option value="low" @selected(old('urgency') === 'low')>Low</option>
+                            <option value="medium" @selected(old('urgency') === 'medium')>Medium</option>
+                            <option value="high" @selected(old('urgency') === 'high')>High</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Deadline</label>
+                    <input type="datetime-local" name="deadline" value="{{ old('deadline') }}"
+                           class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Alamat Lokasi Kebutuhan</label>
+                    <textarea name="address" rows="3"
+                              class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                              placeholder="Masukkan alamat lengkap">{{ old('address') }}</textarea>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Latitude</label>
+                        <input type="text" name="latitude" value="{{ old('latitude') }}"
+                               class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                               placeholder="-2.345678">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Longitude</label>
+                        <input type="text" name="longitude" value="{{ old('longitude') }}"
+                               class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                               placeholder="99.123456">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition">
+                    Simpan & Jalankan Smart Matching
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-fit">
+            <h3 class="text-xl font-bold text-slate-800 mb-4">Panduan</h3>
+            <div class="space-y-4 text-sm text-slate-600">
+                <div>
+                    <div class="font-semibold text-slate-800 mb-1">Golongan Darah</div>
+                    <p>Pilih golongan darah sesuai kebutuhan pasien.</p>
+                </div>
+                <div>
+                    <div class="font-semibold text-slate-800 mb-1">Urgensi</div>
+                    <p>Gunakan <span class="text-red-600 font-semibold">high</span> untuk kebutuhan darurat.</p>
+                </div>
+                <div>
+                    <div class="font-semibold text-slate-800 mb-1">Koordinat Lokasi</div>
+                    <p>Koordinat dipakai untuk menghitung donor terdekat.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 rounded-2xl bg-red-50 border border-red-100 p-4 text-sm text-red-700">
+                Setelah request dibuat, sistem akan melakukan matching berdasarkan kecocokan golongan darah,
+                cooldown, dan jarak lokasi donor.
+            </div>
+        </div>
+    </div>
+@endsection

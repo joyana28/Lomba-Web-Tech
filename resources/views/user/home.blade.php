@@ -1,99 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Home - DonorHub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
+@extends('layouts.app', ['title' => 'Home Donor - DonorHub'])
 
-    <!-- NAVBAR -->
-    <nav class="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-red-600">🩸 DonorHub</h1>
-
-        <div class="flex items-center gap-4">
-            <span class="text-gray-600">
-                {{ auth()->user()->name }}
-            </span>
-
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
-                    Logout
-                </button>
-            </form>
-        </div>
-    </nav>
-
-    <!-- HERO -->
-    <div class="p-6 max-w-6xl mx-auto">
-
-        @if(session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        <h2 class="text-3xl font-bold mb-2">
-            Selamat datang, {{ auth()->user()->name }} 👋
-        </h2>
-
-        <p class="text-gray-600 mb-6">
-            Mari bantu sesama dengan menjadi donor darah. Akses fitur di bawah untuk mulai berkontribusi.
-        </p>
-
-        <!-- MENU UTAMA -->
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-            <!-- PROFIL -->
-            <a href="{{ route('donor.profile') }}" 
-               class="bg-white p-6 rounded shadow hover:shadow-lg transition block">
-                <h3 class="text-lg font-semibold text-red-500 mb-2">👤 Profil Saya</h3>
-                <p class="text-gray-600 text-sm">
-                    Kelola data diri dan informasi donor Anda.
-                </p>
-            </a>
-
-            <!-- REQUEST -->
-            <a href="{{ route('requests.index') }}" 
-               class="bg-white p-6 rounded shadow hover:shadow-lg transition block">
-                <h3 class="text-lg font-semibold text-blue-500 mb-2">🩸 Permintaan Donor</h3>
-                <p class="text-gray-600 text-sm">
-                    Lihat dan respon permintaan donor darah.
-                </p>
-            </a>
-
-            <!-- HISTORY -->
-            <a href="{{ route('history.index') }}" 
-               class="bg-white p-6 rounded shadow hover:shadow-lg transition block">
-                <h3 class="text-lg font-semibold text-green-500 mb-2">📜 Riwayat Donasi</h3>
-                <p class="text-gray-600 text-sm">
-                    Lihat riwayat donasi yang pernah Anda lakukan.
-                </p>
-            </a>
-
-            <!-- NOTIF -->
-            <a href="{{ route('notifications.index') }}" 
-               class="bg-white p-6 rounded shadow hover:shadow-lg transition block">
-                <h3 class="text-lg font-semibold text-yellow-500 mb-2">🔔 Notifikasi</h3>
-                <p class="text-gray-600 text-sm">
-                    Cek notifikasi terbaru terkait donor.
-                </p>
-            </a>
-
-            <!-- MATCHING -->
-            <a href="#" 
-               class="bg-white p-6 rounded shadow hover:shadow-lg transition block">
-                <h3 class="text-lg font-semibold text-purple-500 mb-2">🧠 Smart Matching</h3>
-                <p class="text-gray-600 text-sm">
-                    Sistem akan mencarikan donor terbaik secara otomatis.
-                </p>
-            </a>
-
-        </div>
-
+@section('content')
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-900">Selamat datang, {{ auth()->user()->name }} 👋</h1>
+        <p class="mt-2 text-slate-500">Kelola profil donor, cek request, lihat notifikasi, dan pantau riwayat donasi Anda.</p>
     </div>
 
-</body>
-</html>
+    <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <a href="{{ route('donor.profile') }}" class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:-translate-y-0.5 transition">
+            <div class="text-3xl mb-4">👤</div>
+            <h3 class="font-bold text-lg text-slate-800 group-hover:text-red-600">Profil Donor</h3>
+            <p class="text-sm text-slate-500 mt-2">Lengkapi data donor agar proses matching lebih akurat.</p>
+        </a>
+
+        <a href="{{ route('requests.index') }}" class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:-translate-y-0.5 transition">
+            <div class="text-3xl mb-4">🩸</div>
+            <h3 class="font-bold text-lg text-slate-800 group-hover:text-red-600">Request Donor</h3>
+            <p class="text-sm text-slate-500 mt-2">Lihat kebutuhan donor dan kirim respons jika Anda siap membantu.</p>
+        </a>
+
+        <a href="{{ route('notifications.index') }}" class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:-translate-y-0.5 transition">
+            <div class="text-3xl mb-4">🔔</div>
+            <h3 class="font-bold text-lg text-slate-800 group-hover:text-red-600">Notifikasi</h3>
+            <p class="text-sm text-slate-500 mt-2">Pantau pemberitahuan terbaru terkait request donor.</p>
+        </a>
+
+        <a href="{{ route('history.index') }}" class="group bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:-translate-y-0.5 transition">
+            <div class="text-3xl mb-4">📜</div>
+            <h3 class="font-bold text-lg text-slate-800 group-hover:text-red-600">Riwayat Donasi</h3>
+            <p class="text-sm text-slate-500 mt-2">Lihat histori donasi Anda secara rapi dan terpusat.</p>
+        </a>
+    </div>
+
+    <div class="mt-8 bg-gradient-to-r from-red-600 to-rose-500 text-white rounded-3xl p-8 shadow-lg">
+        <h2 class="text-2xl font-bold">DonorHub Komunitas</h2>
+        <p class="mt-2 text-red-50 max-w-2xl">
+            Platform ini membantu menghubungkan donor darah sukarela dengan kebutuhan donor secara cepat,
+            terstruktur, dan mudah dipantau.
+        </p>
+    </div>
+@endsection

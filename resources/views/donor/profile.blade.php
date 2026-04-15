@@ -1,85 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Profil Donor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
+@extends('layouts.app', ['title' => 'Profil Donor - DonorHub'])
 
-<nav class="bg-white shadow px-6 py-4 flex justify-between">
-    <h1 class="text-red-600 font-bold">🩸 DonorHub</h1>
-
-    <a href="{{ route('user.home') }}" class="text-gray-600 hover:text-red-500">
-        ← Kembali
-    </a>
-</nav>
-
-<div class="max-w-2xl mx-auto p-6">
-
-    @if(session('success'))
-        <div class="mb-4 bg-green-100 text-green-700 p-3 rounded">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    <div class="bg-white p-6 rounded shadow">
-
-        <h2 class="text-xl font-bold mb-4">Profil Donor</h2>
-
-        @if(!$donor)
-            <p class="text-gray-500 mb-4">
-                Kamu belum mengisi profil donor.
-            </p>
-
-            <a href="{{ route('donor.profile') }}?edit=true"
-               class="bg-red-600 text-white px-4 py-2 rounded">
-                Isi Profil
-            </a>
-        @else
-
-            <div class="space-y-3 text-sm">
-
-                <div><strong>Nama:</strong> {{ auth()->user()->name }}</div>
-
-                <div>
-                    <strong>Golongan Darah:</strong>
-                    {{ $donor->bloodType->type }}{{ $donor->bloodType->rhesus }}
-                </div>
-
-                <div><strong>No HP:</strong> {{ $donor->phone }}</div>
-
-                <div>
-                    <strong>Terakhir Donor:</strong>
-                    {{ $donor->last_donation_date ?? '-' }}
-                </div>
-
-                <div>
-                    <strong>Alamat:</strong>
-                    {{ $donor->location->address ?? '-' }}
-                </div>
-
-                <div>
-                    <strong>Status:</strong>
-                    <span class="text-green-600 font-semibold">
-                        {{ $donor->is_available ? 'Siap Donor' : 'Tidak Aktif' }}
-                    </span>
-                </div>
-
-            </div>
-
-            <div class="mt-6">
-                <a href="{{ route('donor.profile') }}?edit=true"
-                   class="bg-blue-600 text-white px-4 py-2 rounded">
-                    Edit Profil
-                </a>
-            </div>
-
-        @endif
-
+@section('content')
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-900">Profil Donor</h1>
+        <p class="mt-2 text-slate-500">Lengkapi data Anda agar sistem matching dapat bekerja lebih akurat.</p>
     </div>
 
-</div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <form method="POST" action="{{ route('donor.profile.update') }}" class="space-y-5">
+            @csrf
 
-</body>
-</html>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Golongan Darah</label>
+                <select name="blood_type_id" class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                    <option value="">-- Pilih Golongan Darah --</option>
+                    @foreach($bloodTypes as $bloodType)
+                        <option value="{{ $bloodType->id }}"
+                            @selected(old('blood_type_id', $donor->blood_type_id ?? null) == $bloodType->id)>
+                            {{ $bloodType->type }}{{ $bloodType->rhesus }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Nomor HP</label>
+                    <input type="text" name="phone" value="{{ old('phone', $donor->phone ?? '') }}"
+                           class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                           placeholder="08xxxxxxxxxx">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Tanggal Donor Terakhir</label>
+                    <input type="date" name="last_donation_date"
+                           value="{{ old('last_donation_date', isset($donor->last_donation_date) ? \Illuminate\Support\Carbon::parse($donor->last_donation_date)->format('Y-m-d') : '') }}"
+                           class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Alamat</label>
+                <textarea name="address" rows="3"
+                          class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                          placeholder="Masukkan alamat lengkap">{{ old('address', $donor->location->address ?? '') }}</textarea>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Latitude</label>
+                    <input type="text" name="latitude" value="{{ old('latitude', $donor->location->latitude ?? '') }}"
+                           class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                           placeholder="-2.345678">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Longitude</label>
+                    <input type="text" name="longitude" value="{{ old('longitude', $donor->location->longitude ?? '') }}"
+                           class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+                           placeholder="99.123456">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Status Ketersediaan</label>
+                <select name="is_available" class="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                    <option value="1" @selected(old('is_available', $donor->is_available ?? 0) == 1)>Tersedia</option>
+                    <option value="0" @selected(old('is_available', $donor->is_available ?? 0) == 0)>Tidak Tersedia</option>
+                </select>
+            </div>
+
+            <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition">
+                Simpan Profil Donor
+            </button>
+        </form>
+    </div>
+@endsection

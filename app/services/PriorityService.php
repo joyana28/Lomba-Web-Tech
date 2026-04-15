@@ -2,91 +2,92 @@
 
 namespace App\Services;
 
-use App\Models\BloodType;
 use App\Models\Donor;
 use App\Models\DonorRequest;
 use Carbon\Carbon;
 
 class PriorityService
 {
-    public function evaluate(Donor $donor, DonorRequest $request, ?float $distanceKm): array
+    public function evaluate(DonorRequest $request, Donor $donor, float $distance): array
     {
-        $isCompatible = $this->isCompatible($request->bloodType, $donor->bloodType);
-        $isEligible = $isCompatible && $this->isAvailable($donor) && !$this->isInCooldown($donor);
-
+        $notes = [];
         $score = 0;
-        if ($isCompatible) {
-            $score += $this->bloodMatchScore($request->bloodType, $donor->bloodType);
-            $score += $this->distanceScore($distanceKm);
-            $score += $donor->is_available ? 10 : 0;
+        $isEligible = true;
+
+        if ((int) $donor->is_available !== 1) {
+            $isEligible = false;
+            $notes[] = 'Donor tidak tersedia';
+        }
+
+        if (!$this->isCompatible($request, $donor)) {
+            $isEligible = false;
+            $notes[] = 'Golongan darah tidak kompatibel';
+        } else {
+            $score += 50;
+            $notes[] = 'Golongan darah kompatibel';
+        }
+
+        if ($donor->cooldown && $donor->cooldown->cooldown_until) {
+            $cooldownUntil = Carbon::parse($donor->cooldown->cooldown_until);
+
+            if ($cooldownUntil->isFuture()) {
+                $isEligible = false;
+                $notes[] = 'Masih cooldown sampai ' . $cooldownUntil->format('d M Y');
+            }
+        }
+
+        if ($distance <= 5) {
+            $score += 30;
+            $notes[] = 'Radius sangat dekat';
+        } elseif ($distance <= 15) {
+            $score += 20;
+            $notes[] = 'Radius dekat';
+        } elseif ($distance <= 30) {
+            $score += 10;
+            $notes[] = 'Radius menengah';
+        } else {
+            $notes[] = 'Radius jauh';
+        }
+
+        if ($request->urgency === 'high') {
+            $score += 10;
+        } elseif ($request->urgency === 'medium') {
+            $score += 5;
         }
 
         return [
-            'is_compatible' => $isCompatible,
+            'priority_score' => $isEligible ? $score : 0,
             'is_eligible' => $isEligible,
-            'priority_score' => $score,
-            'cooldown_until' => $donor->cooldown?->next_available_date,
+            'notes' => implode(' | ', $notes),
         ];
     }
 
-    private function isAvailable(Donor $donor): bool
+    public function isCompatible(DonorRequest $request, Donor $donor): bool
     {
-        return (bool) $donor->is_available;
-    }
-
-    private function isInCooldown(Donor $donor): bool
-    {
-        if (!$donor->cooldown || !$donor->cooldown->is_active) {
+        if (!$request->bloodType || !$donor->bloodType) {
             return false;
         }
 
-        return Carbon::parse($donor->cooldown->next_available_date)->isFuture();
-    }
+        $requestType = $request->bloodType->type;
+        $requestRhesus = $request->bloodType->rhesus;
+        $donorType = $donor->bloodType->type;
+        $donorRhesus = $donor->bloodType->rhesus;
 
-    public function isCompatible(BloodType $requestType, BloodType $donorType): bool
-    {
-        $recipient = $requestType->type . $requestType->rhesus;
-        $donor = $donorType->type . $donorType->rhesus;
-
-        $compatibilityMap = [
-            'O-' => ['O-'],
-            'O+' => ['O+', 'O-'],
-            'A-' => ['A-', 'O-'],
-            'A+' => ['A+', 'A-', 'O+', 'O-'],
-            'B-' => ['B-', 'O-'],
-            'B+' => ['B+', 'B-', 'O+', 'O-'],
-            'AB-' => ['AB-', 'A-', 'B-', 'O-'],
-            'AB+' => ['AB+', 'AB-', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-'],
-        ];
-
-        return in_array($donor, $compatibilityMap[$recipient] ?? [], true);
-    }
-
-    private function bloodMatchScore(BloodType $requestType, BloodType $donorType): int
-    {
-        if ($requestType->type === $donorType->type && $requestType->rhesus === $donorType->rhesus) {
-            return 60;
-        }
-
-        if ($requestType->type === $donorType->type) {
-            return 45;
-        }
-
-        return 30;
-    }
-
-    private function distanceScore(?float $distanceKm): int
-    {
-        if ($distanceKm === null) {
-            return 0;
-        }
-
-        return match (true) {
-            $distanceKm <= 5 => 30,
-            $distanceKm <= 10 => 25,
-            $distanceKm <= 25 => 15,
-            $distanceKm <= 50 => 5,
-            default => 0,
+        $compatibleTypes = match ($requestType) {
+            'O' => ['O'],
+            'A' => ['A', 'O'],
+            'B' => ['B', 'O'],
+            'AB' => ['AB', 'A', 'B', 'O'],
+            default => [],
         };
+
+        $compatibleRhesus = match ($requestRhesus) {
+            '+' => ['+', '-'],
+            '-' => ['-'],
+            default => [],
+        };
+
+        return in_array($donorType, $compatibleTypes, true)
+            && in_array($donorRhesus, $compatibleRhesus, true);
     }
 }
