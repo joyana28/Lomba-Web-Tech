@@ -15,8 +15,7 @@ class IsAdmin
         }
 
         if (auth()->user()->role !== 'admin') {
-            return redirect()->route('user.home')
-                ->with('error', 'Hanya admin yang boleh mengakses halaman tersebut.');
+            abort(403, 'Hanya admin yang boleh mengakses halaman ini.');
         }
 
         return $next($request);

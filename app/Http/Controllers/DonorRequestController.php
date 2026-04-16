@@ -38,13 +38,13 @@ class DonorRequestController extends Controller
     }
 
     public function create()
-    {
-        abort_unless(auth()->user()?->role === 'admin', 403);
+{
+    abort_unless(auth()->user()?->role === 'admin', 403);
 
-        $bloodTypes = BloodType::orderBy('type')->orderBy('rhesus')->get();
+    $bloodTypes = BloodType::orderBy('type')->orderBy('rhesus')->get();
 
-        return view('requests.create', compact('bloodTypes'));
-    }
+    return view('admin.requests.create', compact('bloodTypes'));
+}
 
     public function store(Request $request, MatchingService $matchingService)
     {
@@ -54,7 +54,11 @@ class DonorRequestController extends Controller
             'blood_type_id' => ['required', 'exists:blood_types,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
             'urgency' => ['required', 'in:low,medium,high'],
-            'deadline' => ['required', 'date', 'after:now'],
+           'deadline' => ['required', 'date', function ($attribute, $value, $fail) {
+            if (strtotime($value) < time()) {
+             $fail('Deadline tidak boleh di masa lalu.');
+            }
+    }],
             'address' => ['required', 'string', 'max:500'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
