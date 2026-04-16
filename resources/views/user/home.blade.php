@@ -28,8 +28,6 @@
 @endphp
 
 <div class="grid xl:grid-cols-3 gap-5 mb-6">
-
-    <!-- HERO -->
     <div class="xl:col-span-2 rounded-[2rem] bg-gradient-to-r from-red-600 to-rose-500 text-white p-7 shadow-xl">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 text-sm font-semibold mb-4">
             🩸 Portal Pendonor Sukarela
@@ -58,7 +56,6 @@
         </div>
     </div>
 
-    <!-- STATUS -->
     <div class="bg-white rounded-[2rem] border shadow-sm p-5">
         <div class="text-sm text-slate-500 mb-2">Status Donor</div>
 
@@ -89,7 +86,6 @@
 
 </div>
 
-<!-- STATS -->
 <div class="grid md:grid-cols-3 gap-5 mb-6">
 
     <div class="bg-white rounded-2xl border p-5 shadow-sm">
@@ -114,7 +110,6 @@
 
 </div>
 
-<!-- ACTION -->
 <div class="grid lg:grid-cols-1 gap-5">
     <a href="{{ route('requests.index') }}"
        class="group bg-white rounded-[2rem] border shadow-sm p-6 hover:shadow-md transition">

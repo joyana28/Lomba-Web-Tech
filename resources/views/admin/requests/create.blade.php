@@ -19,8 +19,6 @@
 
     <form method="POST" action="{{ route('requests.store') }}" class="space-y-5 bg-white p-6 rounded-2xl shadow">
         @csrf
-
-        <!-- Golongan Darah -->
         <div>
             <label class="block mb-2 font-semibold">Golongan Darah</label>
             <select name="blood_type_id" class="w-full border p-3 rounded-xl">
@@ -32,14 +30,10 @@
                 @endforeach
             </select>
         </div>
-
-        <!-- Jumlah -->
         <div>
             <label class="block mb-2 font-semibold">Jumlah Kebutuhan</label>
             <input type="number" name="quantity" class="w-full border p-3 rounded-xl" placeholder="Contoh: 3">
         </div>
-
-        <!-- Urgency -->
         <div>
             <label class="block mb-2 font-semibold">Tingkat Urgensi</label>
             <select name="urgency" class="w-full border p-3 rounded-xl">
@@ -48,26 +42,18 @@
                 <option value="high">High</option>
             </select>
         </div>
-
-        <!-- Deadline -->
         <div>
             <label class="block mb-2 font-semibold">Deadline</label>
             <input type="datetime-local" name="deadline" class="w-full border p-3 rounded-xl">
         </div>
-
-        <!-- Alamat -->
         <div>
             <label class="block mb-2 font-semibold">Alamat</label>
             <textarea name="address" class="w-full border p-3 rounded-xl" rows="3"></textarea>
         </div>
-
-        <!-- Latitude -->
         <div>
             <label class="block mb-2 font-semibold">Latitude</label>
             <input type="text" name="latitude" class="w-full border p-3 rounded-xl" placeholder="-2.123456">
         </div>
-
-        <!-- Longitude -->
         <div>
             <label class="block mb-2 font-semibold">Longitude</label>
             <input type="text" name="longitude" class="w-full border p-3 rounded-xl" placeholder="99.123456">

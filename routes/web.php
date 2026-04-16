@@ -14,20 +14,10 @@ use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DonationHistoryController;
 
-/*
-|--------------------------------------------------------------------------
-| LANDING
-|--------------------------------------------------------------------------
-*/
 Route::get('/', function () {
     return view('welcome');
 })->name('landing');
 
-/*
-|--------------------------------------------------------------------------
-| GUEST
-|--------------------------------------------------------------------------
-*/
 Route::middleware('guest')->group(function () {
 
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -43,11 +33,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
 });
 
-/*
-|--------------------------------------------------------------------------
-| AUTH
-|--------------------------------------------------------------------------
-*/
 Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -58,30 +43,15 @@ Route::middleware('auth')->group(function () {
             : view('user.home');
     })->name('user.home');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN ONLY
-    |--------------------------------------------------------------------------
-    */
     Route::middleware('is_admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | DONOR PROFILE
-    |--------------------------------------------------------------------------
-    */
     Route::prefix('donor')->group(function () {
         Route::get('/profile', [DonorProfileController::class, 'index'])->name('donor.profile');
         Route::post('/profile/update', [DonorProfileController::class, 'update'])->name('donor.profile.update');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | REQUEST
-    |--------------------------------------------------------------------------
-    */
     Route::prefix('requests')->group(function () {
 
         Route::get('/', [DonorRequestController::class, 'index'])->name('requests.index');
@@ -100,11 +70,6 @@ Route::middleware('auth')->group(function () {
         ->name('requests.results.confirm');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | OTHER
-    |--------------------------------------------------------------------------
-    */
     Route::get('/matching/{request}', [MatchingController::class, 'match'])->name('matching.run');
 
     Route::prefix('notifications')->group(function () {

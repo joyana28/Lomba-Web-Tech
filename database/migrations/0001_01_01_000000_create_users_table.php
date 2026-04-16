@@ -15,7 +15,6 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
 
-            // 🔥 TAMBAHAN PENTING
             $table->enum('role', ['admin', 'donor'])->default('donor');
 
             $table->rememberToken();

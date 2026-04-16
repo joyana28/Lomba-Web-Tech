@@ -14,7 +14,6 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // 🔴 ADMIN
         $admin = User::updateOrCreate(
             ['email' => 'admin@donorhub.com'],
             [
@@ -24,7 +23,6 @@ class DemoDataSeeder extends Seeder
             ]
         );
 
-        // 🔵 DONOR (SEDIKIT & JELAS)
         $donorUsers = [
             [
                 'name' => 'Budi Donor',
@@ -73,7 +71,6 @@ class DemoDataSeeder extends Seeder
             );
         }
 
-        // 🩸 REQUEST (SEDIKIT AJA)
         $requests = [
             [
                 'address' => 'RSUD Porsea',

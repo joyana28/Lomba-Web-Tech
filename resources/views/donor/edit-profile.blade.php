@@ -33,7 +33,6 @@
         <form method="POST" action="{{ route('donor.profile.update') }}" class="space-y-4">
             @csrf
 
-            <!-- BLOOD -->
             <div>
                 <label>Golongan Darah</label>
                 <select name="blood_type_id" class="w-full border p-2 rounded">
@@ -46,14 +45,12 @@
                 </select>
             </div>
 
-            <!-- PHONE -->
             <div>
                 <label>No HP</label>
                 <input type="text" name="phone" value="{{ $donor->phone ?? '' }}"
                        class="w-full border p-2 rounded">
             </div>
 
-            <!-- LAST DONATION -->
             <div>
                 <label>Terakhir Donor</label>
                 <input type="date" name="last_donation_date"
@@ -61,7 +58,6 @@
                        class="w-full border p-2 rounded">
             </div>
 
-            <!-- ADDRESS -->
             <div>
                 <label>Alamat</label>
                 <input type="text" name="address"
@@ -69,7 +65,6 @@
                        class="w-full border p-2 rounded">
             </div>
 
-            <!-- LAT -->
             <div>
                 <label>Latitude</label>
                 <input type="number" step="any" name="latitude"
@@ -77,7 +72,6 @@
                        class="w-full border p-2 rounded">
             </div>
 
-            <!-- LNG -->
             <div>
                 <label>Longitude</label>
                 <input type="number" step="any" name="longitude"
