@@ -14,6 +14,7 @@ return new class extends Migration
         $table->foreignId('donor_request_id')->constrained()->cascadeOnDelete();
         $table->date('donation_date');
         $table->enum('status', ['completed', 'cancelled']);
+        $table->text('notes')->nullable();
         $table->timestamps();
     });
     }

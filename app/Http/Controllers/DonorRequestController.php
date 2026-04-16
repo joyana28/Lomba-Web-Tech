@@ -38,13 +38,13 @@ class DonorRequestController extends Controller
     }
 
     public function create()
-{
-    abort_unless(auth()->user()?->role === 'admin', 403);
+    {
+        abort_unless(auth()->user()?->role === 'admin', 403);
 
-    $bloodTypes = BloodType::orderBy('type')->orderBy('rhesus')->get();
+        $bloodTypes = BloodType::orderBy('type')->orderBy('rhesus')->get();
 
-    return view('admin.requests.create', compact('bloodTypes'));
-}
+        return view('admin.requests.create', compact('bloodTypes'));
+    }
 
     public function store(Request $request, MatchingService $matchingService)
     {
@@ -54,11 +54,11 @@ class DonorRequestController extends Controller
             'blood_type_id' => ['required', 'exists:blood_types,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
             'urgency' => ['required', 'in:low,medium,high'],
-           'deadline' => ['required', 'date', function ($attribute, $value, $fail) {
-            if (strtotime($value) < time()) {
-             $fail('Deadline tidak boleh di masa lalu.');
-            }
-    }],
+            'deadline' => ['required', 'date', function ($attribute, $value, $fail) {
+                if (strtotime($value) < time()) {
+                    $fail('Deadline tidak boleh di masa lalu.');
+                }
+            }],
             'address' => ['required', 'string', 'max:500'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
@@ -114,12 +114,12 @@ class DonorRequestController extends Controller
             ->filter(fn ($result) => Str::contains((string) $result->notes, 'DONASI_BERHASIL:'))
             ->count();
 
-        return view('requests.show', [
-            'donorRequest' => $request,
-            'eligibleCount' => $eligibleCount,
-            'notificationCount' => $notificationCount,
-            'confirmedCount' => $confirmedCount,
-        ]);
+        return view('requests.show', compact(
+            'request',
+            'eligibleCount',
+            'notificationCount',
+            'confirmedCount'
+        ))->with('donorRequest', $request);
     }
 
     public function close(DonorRequest $request)
@@ -145,28 +145,22 @@ class DonorRequestController extends Controller
     {
         abort_unless(auth()->user()?->role === 'admin', 403);
 
-        if ((int) $result->donor_request_id !== (int) $request->id) {
+        if ($result->donor_request_id !== $request->id) {
             abort(404);
         }
 
         if ($request->status === 'closed') {
-            return redirect()
-                ->route('requests.show', $request->id)
-                ->with('error', 'Request ini sudah ditutup.');
+            return back()->with('error', 'Request sudah ditutup.');
         }
 
         $result->loadMissing('donor.user');
 
         if (!$result->donor) {
-            return redirect()
-                ->route('requests.show', $request->id)
-                ->with('error', 'Data donor tidak ditemukan.');
+            return back()->with('error', 'Donor tidak ditemukan.');
         }
 
         if (Str::contains((string) $result->notes, 'DONASI_BERHASIL:')) {
-            return redirect()
-                ->route('requests.show', $request->id)
-                ->with('error', 'Donor ini sudah pernah dikonfirmasi berhasil.');
+            return back()->with('error', 'Sudah dikonfirmasi.');
         }
 
         DonationHistory::updateOrCreate(
@@ -175,7 +169,7 @@ class DonorRequestController extends Controller
                 'donor_request_id' => $request->id,
             ],
             [
-                'notes' => 'Donasi berhasil dikonfirmasi admin untuk request #' . $request->id,
+                'notes' => 'Donasi berhasil untuk request #' . $request->id,
                 'donated_at' => now(),
             ]
         );
@@ -184,7 +178,7 @@ class DonorRequestController extends Controller
             ['donor_id' => $result->donor_id],
             [
                 'cooldown_until' => Carbon::now()->addDays(90),
-                'reason' => 'Selesai donor untuk request #' . $request->id,
+                'reason' => 'Donor selesai untuk request #' . $request->id,
             ]
         );
 
@@ -194,35 +188,32 @@ class DonorRequestController extends Controller
         ]);
 
         $result->update([
-            'notes' => trim(($result->notes ? $result->notes . ' | ' : '') . 'DONASI_BERHASIL: dikonfirmasi admin.'),
+            'notes' => trim(($result->notes ? $result->notes . ' | ' : '') . 'DONASI_BERHASIL: dikonfirmasi admin'),
         ]);
 
         if ($result->donor->user_id) {
             Notification::create([
                 'user_id' => $result->donor->user_id,
-                'message' => 'Terima kasih. Donasi Anda untuk request #' . $request->id . ' telah dikonfirmasi berhasil oleh admin.',
+                'message' => 'Donasi Anda telah dikonfirmasi berhasil untuk request #' . $request->id,
                 'status' => 'sent',
             ]);
         }
 
-        $confirmedCount = MatchingResult::query()
-            ->where('donor_request_id', $request->id)
+        $confirmedCount = MatchingResult::where('donor_request_id', $request->id)
             ->get()
             ->filter(fn ($item) => Str::contains((string) $item->notes, 'DONASI_BERHASIL:'))
             ->count();
 
-        if ($confirmedCount >= (int) $request->quantity) {
-            $request->update([
-                'status' => 'closed',
-            ]);
+        if ($confirmedCount >= $request->quantity) {
+            $request->update(['status' => 'closed']);
 
             return redirect()
                 ->route('requests.show', $request->id)
-                ->with('success', 'Donor berhasil dikonfirmasi dan request otomatis ditutup karena kebutuhan sudah terpenuhi.');
+                ->with('success', 'Donor terpenuhi, request otomatis ditutup.');
         }
 
         return redirect()
             ->route('requests.show', $request->id)
-            ->with('success', 'Donor berhasil dikonfirmasi. Riwayat donor dan cooldown sudah diperbarui.');
+            ->with('success', 'Donor berhasil dikonfirmasi.');
     }
 }

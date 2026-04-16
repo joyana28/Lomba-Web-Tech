@@ -14,91 +14,102 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
+        // 🔴 ADMIN
         $admin = User::updateOrCreate(
-            ['email' => 'admin@donorhub.test'],
+            ['email' => 'admin@donorhub.com'],
             [
                 'name' => 'Admin DonorHub',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('admin123'),
                 'role' => 'admin',
             ]
         );
 
+        // 🔵 DONOR (SEDIKIT & JELAS)
         $donorUsers = [
-            ['name' => 'Budi Donor', 'email' => 'budi@donorhub.test'],
-            ['name' => 'Sinta Donor', 'email' => 'sinta@donorhub.test'],
-            ['name' => 'Rina Donor', 'email' => 'rina@donorhub.test'],
-            ['name' => 'Andi Donor', 'email' => 'andi@donorhub.test'],
-            ['name' => 'Dewi Donor', 'email' => 'dewi@donorhub.test'],
+            [
+                'name' => 'Budi Donor',
+                'email' => 'budi@donorhub.test',
+                'address' => 'Balige, Toba',
+                'lat' => 2.3330,
+                'lng' => 99.0660,
+            ],
+            [
+                'name' => 'Sinta Donor',
+                'email' => 'sinta@donorhub.test',
+                'address' => 'Porsea, Toba',
+                'lat' => 2.1245,
+                'lng' => 99.1762,
+            ],
         ];
 
-        foreach ($donorUsers as $index => $donorUser) {
+        foreach ($donorUsers as $i => $data) {
+
             $user = User::updateOrCreate(
-                ['email' => $donorUser['email']],
+                ['email' => $data['email']],
                 [
-                    'name' => $donorUser['name'],
+                    'name' => $data['name'],
                     'password' => Hash::make('password'),
                     'role' => 'donor',
                 ]
             );
 
             $location = Location::create([
-                'address' => 'Lokasi Donor ' . ($index + 1) . ', Balige, Toba',
-                'latitude' => 2.3330 + ($index * 0.01),
-                'longitude' => 99.0660 + ($index * 0.01),
+                'address' => $data['address'],
+                'latitude' => $data['lat'],
+                'longitude' => $data['lng'],
             ]);
 
-            $bloodType = BloodType::query()->inRandomOrder()->first();
+            $bloodType = BloodType::inRandomOrder()->first();
 
             Donor::updateOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'blood_type_id' => $bloodType?->id,
+                    'blood_type_id' => $bloodType->id,
                     'location_id' => $location->id,
-                    'phone' => '08123456789' . $index,
-                    'last_donation_date' => now()->subDays(rand(100, 300))->format('Y-m-d'),
-                    'is_available' => rand(0, 1),
+                    'phone' => '0812345678' . $i,
+                    'last_donation_date' => now()->subDays(120 + ($i * 30)),
+                    'is_available' => true,
                 ]
             );
         }
 
-        $requestLocations = [
+        // 🩸 REQUEST (SEDIKIT AJA)
+        $requests = [
             [
-                'address' => 'RSUD Porsea, Toba',
-                'latitude' => 2.1245,
-                'longitude' => 99.1762,
+                'address' => 'RSUD Porsea',
+                'lat' => 2.1245,
+                'lng' => 99.1762,
+                'urgency' => 'high',
             ],
             [
-                'address' => 'Puskesmas Balige, Toba',
-                'latitude' => 2.3341,
-                'longitude' => 99.0671,
-            ],
-            [
-                'address' => 'Klinik Laguboti, Toba',
-                'latitude' => 2.2574,
-                'longitude' => 99.1022,
+                'address' => 'Puskesmas Balige',
+                'lat' => 2.3341,
+                'lng' => 99.0671,
+                'urgency' => 'medium',
             ],
         ];
 
-        foreach ($requestLocations as $i => $requestLocation) {
+        foreach ($requests as $i => $data) {
+
             $location = Location::create([
-                'address' => $requestLocation['address'],
-                'latitude' => $requestLocation['latitude'],
-                'longitude' => $requestLocation['longitude'],
+                'address' => $data['address'],
+                'latitude' => $data['lat'],
+                'longitude' => $data['lng'],
             ]);
 
-            $bloodType = BloodType::query()->inRandomOrder()->first();
+            $bloodType = BloodType::inRandomOrder()->first();
 
             DonorRequest::updateOrCreate(
                 [
                     'created_by' => $admin->id,
                     'location_id' => $location->id,
-                    'blood_type_id' => $bloodType?->id,
-                    'quantity' => $i + 1,
+                    'blood_type_id' => $bloodType->id,
                 ],
                 [
-                    'urgency' => $i === 0 ? 'high' : ($i === 1 ? 'medium' : 'low'),
-                    'deadline' => now()->addDays($i + 1),
-                    'status' => $i === 2 ? 'closed' : 'open',
+                    'quantity' => $i + 1,
+                    'urgency' => $data['urgency'],
+                    'deadline' => now()->addDays($i + 2),
+                    'status' => 'open',
                 ]
             );
         }

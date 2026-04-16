@@ -23,17 +23,17 @@
 
                 <div class="max-w-md">
                     <h2 class="text-4xl font-bold leading-tight mb-4">
-                        Masuk dan bantu percepat koordinasi donor darah.
+                        Bergabunglah dan bantu meningkatkan koordinasi donor darah dengan lebih baik.
                     </h2>
                     <p class="text-red-50 text-lg leading-relaxed">
-                        DonorHub menghubungkan kebutuhan donor darah dengan calon donor yang relevan,
-                        lebih cepat, lebih terstruktur, dan lebih mudah dipantau.
+                         DonorHub hadir untuk membantu menghubungkan kebutuhan donor darah dengan calon donor yang tepat,
+                         dengan proses yang lebih cepat, terstruktur, dan mudah dipantau.
                     </p>
                 </div>
             </div>
 
             <div class="text-sm text-red-100">
-                Techsprint Innovation Cup 2026 · DonorHub Komunitas
+                DonorHub Komunitas - Mari Bantu Sesama yang Membutuhkan
             </div>
         </div>
 
@@ -122,7 +122,7 @@
                 </div>
 
                 <p class="text-center text-xs text-slate-400 mt-6">
-                    DonorHub · Sistem koordinasi donor darah berbasis komunitas
+                    © 2026 DonorHub · Sistem Penghubung Donor Darah
                 </p>
             </div>
         </div>

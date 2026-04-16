@@ -12,6 +12,7 @@ return new class extends Migration
         $table->id();
         $table->string('type', 5);
         $table->enum('rhesus', ['+', '-'])->default('+');
+        $table->timestamps();
     });
     }
 

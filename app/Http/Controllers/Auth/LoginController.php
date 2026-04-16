@@ -23,13 +23,9 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            $user = Auth::user();
-
-            if ($user->role === 'admin') {
-                return redirect()->route('dashboard')->with('success', 'Login berhasil!');
-            }
-
-            return redirect()->route('user.home')->with('success', 'Login berhasil!');
+            return Auth::user()->role === 'admin'
+                ? redirect()->route('dashboard')->with('success', 'Login berhasil!')
+                : redirect()->route('user.home')->with('success', 'Login berhasil!');
         }
 
         return back()->withErrors([
@@ -44,6 +40,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('success', 'Logout berhasil');
+        return redirect()->route('landing')->with('success', 'Logout berhasil');
     }
 }

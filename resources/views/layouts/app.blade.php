@@ -51,11 +51,6 @@
                                    class="px-4 py-2 rounded-xl text-sm font-semibold transition {{ request()->routeIs('requests.*') ? 'bg-red-50 text-red-600' : 'text-slate-600 hover:bg-slate-100' }}">
                                     Request
                                 </a>
-
-                                <a href="{{ route('reports.index') }}"
-                                   class="px-4 py-2 rounded-xl text-sm font-semibold transition {{ request()->routeIs('reports.*') ? 'bg-red-50 text-red-600' : 'text-slate-600 hover:bg-slate-100' }}">
-                                    Laporan
-                                </a>
                             @else
                                 <a href="{{ route('user.home') }}"
                                    class="px-4 py-2 rounded-xl text-sm font-semibold transition {{ request()->routeIs('user.home') ? 'bg-red-50 text-red-600' : 'text-slate-600 hover:bg-slate-100' }}">
