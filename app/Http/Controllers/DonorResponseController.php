@@ -18,7 +18,7 @@ class DonorResponseController extends Controller
         if ($request->status === 'closed') {
             return redirect()
                 ->route('requests.show', $request->id)
-                ->with('error', 'Request ini sudah ditutup dan tidak bisa direspons lagi.');
+                ->with('error', 'Kebutuhan donor ini sudah ditutup.');
         }
 
         $donor = Donor::query()
@@ -29,7 +29,7 @@ class DonorResponseController extends Controller
         if (!$donor) {
             return redirect()
                 ->route('donor.profile')
-                ->with('error', 'Lengkapi profil donor terlebih dahulu sebelum merespons request.');
+                ->with('error', 'Lengkapi profil donor terlebih dahulu sebelum merespons.');
         }
 
         if ((int) $donor->is_available !== 1) {
@@ -59,7 +59,7 @@ class DonorResponseController extends Controller
             if (Str::contains((string) $existingResult->notes, 'RESPON_DONOR:')) {
                 return redirect()
                     ->route('requests.show', $request->id)
-                    ->with('error', 'Kamu sudah pernah merespons request ini.');
+                    ->with('error', 'Anda sudah pernah merespons kebutuhan donor ini.');
             }
 
             $existingResult->update([

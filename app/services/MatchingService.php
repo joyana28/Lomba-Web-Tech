@@ -4,90 +4,84 @@ namespace App\Services;
 
 use App\Models\Donor;
 use App\Models\DonorRequest;
-use Carbon\Carbon;
+use App\Models\MatchingResult;
+use App\Models\Notification;
+use Illuminate\Support\Collection;
 
-class PriorityService
+class MatchingService
 {
-    public function evaluate(DonorRequest $request, Donor $donor, float $distance): array
-    {
-        $notes = [];
-        $score = 0;
-        $isEligible = true;
-
-        if ((int) $donor->is_available !== 1) {
-            $isEligible = false;
-            $notes[] = 'Donor tidak tersedia';
-        }
-
-        if (!$this->isCompatible($request, $donor)) {
-            $isEligible = false;
-            $notes[] = 'Golongan darah tidak kompatibel';
-        } else {
-            $score += 50;
-            $notes[] = 'Golongan darah kompatibel';
-        }
-
-        if ($donor->cooldown && $donor->cooldown->cooldown_until) {
-            $cooldownUntil = Carbon::parse($donor->cooldown->cooldown_until);
-
-            if ($cooldownUntil->isFuture()) {
-                $isEligible = false;
-                $notes[] = 'Masih cooldown sampai ' . $cooldownUntil->format('d M Y');
-            }
-        }
-
-        if ($distance <= 5) {
-            $score += 30;
-            $notes[] = 'Radius sangat dekat';
-        } elseif ($distance <= 15) {
-            $score += 20;
-            $notes[] = 'Radius dekat';
-        } elseif ($distance <= 30) {
-            $score += 10;
-            $notes[] = 'Radius menengah';
-        } else {
-            $notes[] = 'Radius jauh';
-        }
-
-        if ($request->urgency === 'high') {
-            $score += 10;
-        } elseif ($request->urgency === 'medium') {
-            $score += 5;
-        }
-
-        return [
-            'priority_score' => $isEligible ? $score : 0,
-            'is_eligible' => $isEligible,
-            'notes' => implode(' | ', $notes),
-        ];
+    public function __construct(
+        protected PriorityService $priorityService,
+        protected DistanceService $distanceService
+    ) {
     }
 
-    public function isCompatible(DonorRequest $request, Donor $donor): bool
+    public function run(DonorRequest $donorRequest): Collection
     {
-        if (!$request->bloodType || !$donor->bloodType) {
-            return false;
+        $donorRequest->loadMissing(['bloodType', 'location']);
+
+        MatchingResult::query()
+            ->where('donor_request_id', $donorRequest->id)
+            ->delete();
+
+        $donors = Donor::query()
+            ->with(['user', 'bloodType', 'location', 'cooldown'])
+            ->get();
+
+        $results = collect();
+
+        foreach ($donors as $donor) {
+            if (!$donor->location || !$donorRequest->location) {
+                continue;
+            }
+
+            $distance = $this->distanceService->calculate(
+                $donorRequest->location->latitude ?? 0,
+                $donorRequest->location->longitude ?? 0,
+                $donor->location->latitude ?? 0,
+                $donor->location->longitude ?? 0
+            );
+
+            $evaluation = $this->priorityService->evaluate($donorRequest, $donor, $distance);
+
+            $match = MatchingResult::create([
+                'donor_request_id' => $donorRequest->id,
+                'donor_id' => $donor->id,
+                'distance_km' => $distance,
+                'priority_score' => $evaluation['priority_score'],
+                'is_eligible' => $evaluation['is_eligible'],
+                'notes' => $evaluation['notes'] ?? null,
+            ]);
+
+            $results->push($match);
         }
 
-        $requestType = $request->bloodType->type;
-        $requestRhesus = $request->bloodType->rhesus;
-        $donorType = $donor->bloodType->type;
-        $donorRhesus = $donor->bloodType->rhesus;
+        $eligibleMatches = MatchingResult::query()
+            ->where('donor_request_id', $donorRequest->id)
+            ->where('is_eligible', true)
+            ->with('donor')
+            ->orderByDesc('priority_score')
+            ->orderBy('distance_km')
+            ->get();
 
-        $compatibleTypes = match ($requestType) {
-            'O' => ['O'],
-            'A' => ['A', 'O'],
-            'B' => ['B', 'O'],
-            'AB' => ['AB', 'A', 'B', 'O'],
-            default => [],
-        };
+        $topTargets = $eligibleMatches->take(max($donorRequest->quantity * 3, 5));
 
-        $compatibleRhesus = match ($requestRhesus) {
-            '+' => ['+', '-'],
-            '-' => ['-'],
-            default => [],
-        };
+        foreach ($topTargets as $target) {
+            if (!$target->donor || !$target->donor->user_id) {
+                continue;
+            }
 
-        return in_array($donorType, $compatibleTypes, true)
-            && in_array($donorRhesus, $compatibleRhesus, true);
+            Notification::create([
+                'user_id' => $target->donor->user_id,
+                'message' => 'Permintaan donor darah baru: dibutuhkan golongan '
+                    . ($donorRequest->bloodType->type ?? '-')
+                    . ($donorRequest->bloodType->rhesus ?? '')
+                    . ' di ' . ($donorRequest->location->address ?? '-')
+                    . '. Segera cek aplikasi DonorHub.',
+                'status' => 'sent',
+            ]);
+        }
+
+        return $eligibleMatches;
     }
 }

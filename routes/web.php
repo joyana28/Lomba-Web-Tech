@@ -37,6 +37,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/home', function () {
+        if (auth()->user()->role === 'admin') {
+            return redirect()->route('dashboard');
+        }
+
         return view('user.home');
     })->name('user.home');
 
@@ -50,17 +54,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/profile/update', [DonorProfileController::class, 'update'])->name('donor.profile.update');
     });
 
-    // SEMUA USER LOGIN BOLEH LIHAT & BUAT REQUEST
+    // Semua user login bisa lihat kebutuhan donor dan donor bisa merespons
     Route::prefix('requests')->group(function () {
         Route::get('/', [DonorRequestController::class, 'index'])->name('requests.index');
-        Route::get('/create', [DonorRequestController::class, 'create'])->name('requests.create');
-        Route::post('/', [DonorRequestController::class, 'store'])->name('requests.store');
         Route::get('/{request}', [DonorRequestController::class, 'show'])->name('requests.show');
         Route::post('/{request}/donate', [DonorResponseController::class, 'store'])->name('donor.respond');
     });
 
-    // KHUSUS ADMIN
+    // Hanya admin yang boleh buat dan kelola request
     Route::prefix('requests')->middleware('is_admin')->group(function () {
+        Route::get('/create', [DonorRequestController::class, 'create'])->name('requests.create');
+        Route::post('/', [DonorRequestController::class, 'store'])->name('requests.store');
         Route::post('/{request}/close', [DonorRequestController::class, 'close'])->name('requests.close');
         Route::post('/{request}/results/{result}/confirm', [DonorRequestController::class, 'confirmDonation'])->name('requests.results.confirm');
     });

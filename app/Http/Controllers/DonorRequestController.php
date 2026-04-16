@@ -39,6 +39,8 @@ class DonorRequestController extends Controller
 
     public function create()
     {
+        abort_unless(auth()->user()?->role === 'admin', 403);
+
         $bloodTypes = BloodType::orderBy('type')->orderBy('rhesus')->get();
 
         return view('requests.create', compact('bloodTypes'));
@@ -46,6 +48,8 @@ class DonorRequestController extends Controller
 
     public function store(Request $request, MatchingService $matchingService)
     {
+        abort_unless(auth()->user()?->role === 'admin', 403);
+
         $validated = $request->validate([
             'blood_type_id' => ['required', 'exists:blood_types,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
@@ -76,7 +80,7 @@ class DonorRequestController extends Controller
 
         return redirect()
             ->route('requests.show', $donorRequest->id)
-            ->with('success', 'Request berhasil dibuat. ' . $results->count() . ' kandidat ditemukan.');
+            ->with('success', 'Request berhasil dibuat. ' . $results->count() . ' kandidat donor ditemukan.');
     }
 
     public function show(DonorRequest $request)
@@ -215,6 +219,6 @@ class DonorRequestController extends Controller
 
         return redirect()
             ->route('requests.show', $request->id)
-            ->with('success', 'Donor berhasil dikonfirmasi. Riwayat dan cooldown sudah diperbarui.');
+            ->with('success', 'Donor berhasil dikonfirmasi. Riwayat donor dan cooldown sudah diperbarui.');
     }
 }

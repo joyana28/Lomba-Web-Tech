@@ -1,10 +1,12 @@
-@extends('layouts.app', ['title' => 'Detail Request - DonorHub'])
+@extends('layouts.app', ['title' => 'Detail Kebutuhan Donor - DonorHub'])
 
 @section('content')
     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-3xl font-bold text-slate-900">Detail Request Donor</h1>
-            <p class="mt-2 text-slate-500">Request ini dibuat oleh {{ $donorRequest->user->name ?? 'User' }}.</p>
+            <h1 class="text-3xl font-bold text-slate-900">Detail Kebutuhan Donor</h1>
+            <p class="mt-2 text-slate-500">
+                Request ini dibuat oleh {{ $donorRequest->user->name ?? 'Admin' }}.
+            </p>
         </div>
 
         @if(auth()->user()->role === 'admin')
@@ -26,7 +28,9 @@
     <div class="grid md:grid-cols-2 xl:grid-cols-5 gap-6 mb-6">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
             <p class="text-sm text-slate-500">Golongan Darah</p>
-            <h3 class="mt-2 text-2xl font-bold text-red-600">{{ $donorRequest->bloodType->type ?? '-' }}{{ $donorRequest->bloodType->rhesus ?? '' }}</h3>
+            <h3 class="mt-2 text-2xl font-bold text-red-600">
+                {{ $donorRequest->bloodType->type ?? '-' }}{{ $donorRequest->bloodType->rhesus ?? '' }}
+            </h3>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
@@ -35,7 +39,7 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <p class="text-sm text-slate-500">Eligible</p>
+            <p class="text-sm text-slate-500">Kandidat Eligible</p>
             <h3 class="mt-2 text-2xl font-bold text-blue-600">{{ $eligibleCount }}</h3>
         </div>
 
@@ -52,24 +56,29 @@
 
     <div class="grid lg:grid-cols-3 gap-6 mb-6">
         <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <h3 class="text-xl font-bold text-slate-800 mb-3">Informasi Request</h3>
+            <h3 class="text-xl font-bold text-slate-800 mb-3">Informasi Kebutuhan Donor</h3>
+
             <div class="grid md:grid-cols-2 gap-4 text-sm">
                 <div>
                     <div class="text-slate-500">Dibuat Oleh</div>
                     <div class="font-semibold mt-1">{{ $donorRequest->user->name ?? '-' }}</div>
                 </div>
+
                 <div>
                     <div class="text-slate-500">Status</div>
                     <div class="font-semibold mt-1">{{ strtoupper($donorRequest->status) }}</div>
                 </div>
+
                 <div>
                     <div class="text-slate-500">Urgensi</div>
                     <div class="font-semibold mt-1">{{ strtoupper($donorRequest->urgency) }}</div>
                 </div>
+
                 <div>
                     <div class="text-slate-500">Deadline</div>
                     <div class="font-semibold mt-1">{{ $donorRequest->deadline?->format('d M Y H:i') ?? '-' }}</div>
                 </div>
+
                 <div class="md:col-span-2">
                     <div class="text-slate-500">Alamat</div>
                     <div class="font-semibold mt-1">{{ $donorRequest->location->address ?? '-' }}</div>
@@ -80,8 +89,11 @@
         @if(auth()->user()->role !== 'admin')
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 @if($donorRequest->status !== 'closed')
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">Respon Sebagai Donor</h3>
-                    <p class="text-sm text-slate-500 mb-4">Kalau Anda adalah donor dan siap membantu, klik tombol di bawah.</p>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Tawarkan Donor</h3>
+                    <p class="text-sm text-slate-500 mb-4">
+                        Jika Anda siap menjadi donor untuk kebutuhan ini, klik tombol di bawah.
+                    </p>
+
                     <form method="POST" action="{{ route('donor.respond', $donorRequest->id) }}">
                         @csrf
                         <button type="submit" class="w-full px-5 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
@@ -90,7 +102,7 @@
                     </form>
                 @else
                     <h3 class="text-lg font-bold text-yellow-700 mb-2">Request Ditutup</h3>
-                    <p class="text-sm text-yellow-700">Request ini sudah selesai dan tidak bisa direspons lagi.</p>
+                    <p class="text-sm text-yellow-700">Kebutuhan donor ini sudah selesai dan tidak bisa direspons lagi.</p>
                 @endif
             </div>
         @endif
@@ -123,6 +135,7 @@
                             @endif
                         </tr>
                     </thead>
+
                     <tbody>
                         @foreach($donorRequest->matchingResults as $result)
                             <tr class="border-t border-slate-100 hover:bg-slate-50 transition">
@@ -130,24 +143,42 @@
                                     <div class="font-semibold">{{ $result->donor->user->name ?? 'Donor' }}</div>
                                     <div class="text-xs text-slate-500">{{ $result->donor->user->email ?? '-' }}</div>
                                 </td>
-                                <td class="px-5 py-3">{{ $result->donor->bloodType->type ?? '-' }}{{ $result->donor->bloodType->rhesus ?? '' }}</td>
-                                <td class="px-5 py-3 text-slate-600">{{ number_format($result->distance_km ?? 0, 2) }} km</td>
-                                <td class="px-5 py-3 font-semibold text-purple-600">{{ $result->priority_score ?? 0 }}</td>
+
+                                <td class="px-5 py-3">
+                                    {{ $result->donor->bloodType->type ?? '-' }}{{ $result->donor->bloodType->rhesus ?? '' }}
+                                </td>
+
+                                <td class="px-5 py-3 text-slate-600">
+                                    {{ number_format($result->distance_km ?? 0, 2) }} km
+                                </td>
+
+                                <td class="px-5 py-3 font-semibold text-purple-600">
+                                    {{ $result->priority_score ?? 0 }}
+                                </td>
+
                                 <td class="px-5 py-3">
                                     @if($result->is_eligible)
-                                        <span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700 font-medium">Eligible</span>
+                                        <span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700 font-medium">
+                                            Eligible
+                                        </span>
                                     @else
-                                        <span class="px-3 py-1 rounded-full text-xs bg-red-100 text-red-700 font-medium">Tidak Eligible</span>
+                                        <span class="px-3 py-1 rounded-full text-xs bg-red-100 text-red-700 font-medium">
+                                            Tidak Eligible
+                                        </span>
                                     @endif
                                 </td>
+
                                 <td class="px-5 py-3 text-slate-600">
-                                    @if($result->donor->cooldown && $result->donor->cooldown->cooldown_until)
+                                    @if($result->donor && $result->donor->cooldown && $result->donor->cooldown->cooldown_until)
                                         {{ \Carbon\Carbon::parse($result->donor->cooldown->cooldown_until)->format('d M Y') }}
                                     @else
                                         -
                                     @endif
                                 </td>
-                                <td class="px-5 py-3 text-slate-600">{{ $result->notes ?? '-' }}</td>
+
+                                <td class="px-5 py-3 text-slate-600">
+                                    {{ $result->notes ?? '-' }}
+                                </td>
 
                                 @if(auth()->user()->role === 'admin')
                                     <td class="px-5 py-3">
